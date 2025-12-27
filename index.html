@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>タップRPG 完全統合版</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body{background:#111;color:#fff;font-family:sans-serif;text-align:center;margin:0;padding:20px}
+button,input{font-size:14px;padding:8px 14px;margin:4px}
+#tapBtn{font-size:26px;padding:28px 56px;margin-top:20px}
+.hidden{display:none!important}
+.boss{font-size:72px}
+.player{font-size:60px}
+.hp-bar{width:80%;height:20px;background:#444;margin:10px auto;border-radius:10px;overflow:hidden}
+.hp{height:100%;background:red}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.9);display:flex;justify-content:center;align-items:center;z-index:999;font-size:20px;text-align:center;padding:20px}
+</style>
+</head>
+<body>
+
+<h1>🔥 タップRPG 🔥</h1>
+
+<p>
+💰 <span id="coin">0</span>
+　💎 <span id="dia">0</span>
+　⚔ +<span id="atk">0</span>
+</p>
+
+<div class="player" id="player">🙂</div>
+
+<!-- ガチャ -->
+<button onclick="drawGacha()">🎰 ガチャ</button>
+<button onclick="draw10()">🎰 10連</button>
+<button onclick="drawDiaGacha()">💎 上位</button>
+<button onclick="drawDia10()">💎 上位10連</button>
+<button onclick="drawNew()">🌈 新ガチャ</button>
+<button onclick="drawNew10()">🌈 新ガチャ10連</button>
+<button onclick="showDex()">📖 図鑑</button>
+
+<hr>
+
+<input id="diaNum" type="number" min="1" placeholder="変換数">
+<button onclick="exchangeDia()">💰→💎変換</button>
+
+<hr>
+
+<button onclick="toggleAuto()">🤖 オートタップ</button>
+<button onclick="startRush()">🔥 ボスラッシュ</button>
+
+<hr>
+
+<div id="select">
+<h2>ボス選択</h2>
+
+<!-- 通常 -->
+<button onclick="startBattle('スライム',100,'🟢',10)">スライム</button>
+<button onclick="startBattle('ゴブリン',200,'👺',20)">ゴブリン</button>
+<button onclick="startBattle('オーク',500,'👹',50)">オーク</button>
+<button onclick="startBattle('ドラゴン',2000,'🐉',200)">ドラゴン</button>
+<button onclick="startBattle('神竜',8000,'🐲✨',800)">神竜</button>
+
+<!-- ダイヤキャラ -->
+<button onclick="startBattle('青晶スライム(ダイヤキャラ)',1500,'💎',2,true)">青晶スライム</button>
+<button onclick="startBattle('結晶ゴブリン(ダイヤキャラ)',4000,'💎',3,true)">結晶ゴブリン</button>
+<button onclick="startBattle('宝石オーク(ダイヤキャラ)',12000,'💎',5,true)">宝石オーク</button>
+<button onclick="startBattle('輝竜(ダイヤキャラ)',40000,'💎',10,true)">輝竜</button>
+
+<hr>
+<h3>💀 超高HPボス</h3>
+
+<button onclick="startBattle('虚無のスライム',500000,'⚫',5000)">虚無のスライム</button>
+<button onclick="startBattle('破壊ゴブリン',1200000,'💥',12000)">破壊ゴブリン</button>
+<button onclick="startBattle('狂戦士オーク',3000000,'🔥',35000)">狂戦士オーク</button>
+<button onclick="startBattle('災厄ドラゴン',8000000,'🐉🔥',120000)">災厄ドラゴン</button>
+<button onclick="startBattle('堕天神竜',20000000,'😈🐲',300000)">堕天神竜</button>
+
+<button onclick="startBattle('虚無のゴブリン',35000000,'⚫',400000)">虚無のゴブリン</button>
+<button onclick="startBattle('破滅オーク',50000000,'💥',600000)">破滅オーク</button>
+<button onclick="startBattle('終焉ドラゴン',70000000,'🐉',900000)">終焉ドラゴン</button>
+<button onclick="startBattle('堕落神竜',100000000,'🐲',1300000)">堕落神竜</button>
+<button onclick="startBattle('深淵のスライム',140000000,'⚫',1800000)">深淵のスライム</button>
+
+<button onclick="startBattle('奈落ゴブリン',200000000,'👿',2500000)">奈落ゴブリン</button>
+<button onclick="startBattle('冥界オーク',280000000,'👿',3500000)">冥界オーク</button>
+<button onclick="startBattle('破壊神ドラゴン',400000000,'🐉🔥',5000000)">破壊神ドラゴン</button>
+<button onclick="startBattle('神殺しの竜',600000000,'🐲✨',8000000)">神殺しの竜</button>
+<button onclick="startBattle('虚空の神竜',900000000,'☠️',12000000)">虚空の神竜</button>
+
+<button onclick="startBattle('終末のスライム',1300000000,'☠️',18000000)">終末のスライム</button>
+<button onclick="startBattle('絶望ゴブリン',1800000000,'☠️',25000000)">絶望ゴブリン</button>
+<button onclick="startBattle('滅界オーク',2500000000,'☠️',35000000)">滅界オーク</button>
+<button onclick="startBattle('災禍神竜',3500000000,'☠️',50000000)">災禍神竜</button>
+<button onclick="startBattle('世界を喰らう竜',5000000000,'☠️',80000000)">世界を喰らう竜</button>
+
+</div>
+
+<div id="game" class="hidden">
+<h2 id="bossName"></h2>
+<div class="boss" id="bossIcon"></div>
+<div class="hp-bar"><div class="hp" id="hp"></div></div>
+<p>HP: <span id="hpText"></span></p>
+<button id="tapBtn" onclick="tap()">タップ！</button>
+</div>
+
+<div id="overlay" class="overlay hidden"></div>
+
+<script>
+const coinEl=document.getElementById("coin");
+const diaEl=document.getElementById("dia");
+const atkEl=document.getElementById("atk");
+const overlay=document.getElementById("overlay");
+
+let coin=+localStorage.getItem("coin")||0;
+let dia=+localStorage.getItem("dia")||0;
+let atkBonus=+localStorage.getItem("atkBonus")||0;
+let dex=JSON.parse(localStorage.getItem("dex")||"{}");
+
+function save(){
+coinEl.textContent=coin;
+diaEl.textContent=dia;
+atkEl.textContent=atkBonus;
+localStorage.setItem("coin",coin);
+localStorage.setItem("dia",dia);
+localStorage.setItem("atkBonus",atkBonus);
+localStorage.setItem("dex",JSON.stringify(dex));
+}
+save();
+
+/* --- ガチャ --- */
+const normal=[["R",50,0.1],["SR",30,0.3],["UR",15,1],["LR",5,2]];
+const diaG=[["UR",50,1.5],["LR",35,3],["DIVINE",15,10]];
+const newG=[
+["ディバイン",50,10],
+["ディバインⅡ",33,100],
+["ディバインⅢ",17,1000]
+];
+
+function roll(t){
+let r=Math.random()*100,s=0;
+for(const g of t){s+=g[1];if(r<s)return g;}
+}
+
+function drawNew(){
+if(dia<100)return;
+dia-=100;
+const g=roll(newG);
+atkBonus+=g[2];
+dex[g[0]]=(dex[g[0]]||0)+1;
+save();
+overlay.innerHTML=`🌈 新ガチャ結果<br>${g[0]}<br>⚔ +${g[2]}<br><small>(タップで閉じる)</small>`;
+overlay.classList.remove("hidden");
+}
+
+function drawNew10(){
+if(dia<1000)return;
+dia-=1000;
+let txt="🌈 新ガチャ10連<br>";
+for(let i=0;i<10;i++){
+const g=roll(newG);
+atkBonus+=g[2];
+dex[g[0]]=(dex[g[0]]||0)+1;
+txt+=`${g[0]} (+${g[2]})<br>`;
+}
+save();
+overlay.innerHTML=txt+"<small>(タップで閉じる)</small>";
+overlay.classList.remove("hidden");
+}
+
+overlay.onclick=()=>overlay.classList.add("hidden");
+
+/* --- 戦闘 --- */
+let bossHp=0,maxHp=0,reward=0,isDia=false;
+
+function startBattle(n,h,i,r,d=false){
+bossName.textContent=n;
+bossIcon.textContent=i;
+bossHp=maxHp=h;
+reward=r;
+isDia=d;
+select.classList.add("hidden");
+game.classList.remove("hidden");
+updateHp();
+}
+
+function tap(){
+bossHp-=1+atkBonus;
+if(bossHp<=0){
+if(isDia)dia+=reward;
+else coin+=reward;
+save();
+game.classList.add("hidden");
+select.classList.remove("hidden");
+overlay.innerHTML=`🎉 撃破！<br>${isDia?"💎 +":"💰 +"}${reward}<br><small>(タップで閉じる)</small>`;
+overlay.classList.remove("hidden");
+}
+updateHp();
+}
+
+function updateHp(){
+hpText.textContent=Math.max(0,Math.ceil(bossHp));
+hp.style.width=(bossHp/maxHp*100)+"%";
+}
+</script>
+</body>
+</html>
